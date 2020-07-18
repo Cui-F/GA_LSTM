@@ -51,7 +51,6 @@ def csv_to_dataset(file_path):
 
 
 
-
 print(os.path.abspath(r'Metro_Interstate_Traffic_Volum.csv'))
 
 data = pd.read_csv(r'Metro_Interstate_Traffic_Volume.csv')
