@@ -62,5 +62,9 @@ def csv_to_dataset(file_path):
     scaler.fit(label)
     nor_label = scaler.transform(label)
 
-    all_data_ = np.array(list(zip(enc_holiday, enc_weather, nor_temp_, year_, month_, day_, hour_)))
+    rain_1h = data_[:, 2]
+
+    snow_1h = data_[:, 3]
+
+    all_data_ = np.array(list(zip(enc_holiday, nor_temp_, rain_1h, snow_1h,enc_weather,  year_, month_, day_, hour_, nor_label.reshape((-1)))))
     return all_data_, nor_label
