@@ -1,5 +1,5 @@
 import tensorflow as tf
-import np as np
+import numpy as np
 
 import os
 
@@ -99,6 +99,8 @@ def train_step(input, targ, enc_hidden):
 
     return loss_
 
+#遗传算法部分
+
 def cal_pop_fitness(pop):
 
     fitness =[]
@@ -167,6 +169,8 @@ batch_szie = 16
 time_step = 16
 attention_units = 16
 step = 5
+
+
 BUFFER_SIZE = 10000
 result_size = 1
 
@@ -177,75 +181,84 @@ X, Y = csv_to_dataset(r'Metro_Interstate_Traffic_Volume.csv')
 input = np.array([X[step_count*step: step_count*step+time_step] for step_count in range((X.shape[0]-time_step-1)//step)])
 targ = np.array([Y[step_count*step+time_step+1] for step_count in range((X.shape[0]-time_step-1)//step)])
 
+#mse0 = 0.01
 input_ = input[:int(input.shape[0]*0.8)]
 targ_ = targ[:int(targ.shape[0]*0.8)]
 
+
+#mse1 = 0.2
 test_input = input[int(input.shape[0]*0.8):]
-targ_input = targ[int(input.shape[0]*0.8):]
+test_targ = targ[int(input.shape[0]*0.8):]
 
 
 dataset = tf.data.Dataset.from_tensor_slices((input_, targ_)).shuffle(BUFFER_SIZE)
 
 dataset_ = dataset.batch(batch_szie, drop_remainder=True)
 
+example_input_batch, example_target_batch = next(iter(dataset_))
 
-#遗传算法部分
+encoder = Encoder(enc_units=units_num, batch_sz=batch_szie)
 
-#设置用于初始化lstm模型的参数
-new_population = size=np.ones((6, 1))
-new_population[0, :] = [8]
-new_population[1, :] = [16]
-new_population[2, :] = [32]
-new_population[3, :] = [64]
-new_population[4, :] = [128]
-new_population[5, :] = [256]
+optimizer = tf.keras.optimizers.Adam()
 
-best_outputs = []
-num_generations = 1000
+init_hidden = encoder.initialize_hidden_state()
 
-for generation in range(num_generations):
-    print("Generation : ", generation)
-    # Measuring the fitness of each chromosome in the population.
-    fitness = cal_pop_fitness(new_population)
-    print("Fitness")
-    print(fitness)
+decoder = Decoder(result_size, units_num, batch_sz=batch_szie)
 
+steps_per_epoch = input.shape[0] // batch_szie
 
-# example_input_batch, example_target_batch = next(iter(dataset_))
-#
-# encoder = Encoder(enc_units=units_num, batch_sz=batch_szie)
-#
-# optimizer = tf.keras.optimizers.Adam()
-#
-# init_hidden = encoder.initialize_hidden_state()
-#
-# decoder = Decoder(result_size, units_num, batch_sz=batch_szie)
-#
-# steps_per_epoch = input.shape[0] // batch_szie
-#
-# checkpoint_dir = './training_checkpoints'
-# checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
-# checkpoint = tf.train.Checkpoint(optimizer=optimizer, encoder=encoder, decoder=decoder)
-#
-#
-#
-# for epoch in range(EPOCHS):
-#
-#     enc_hidden = [init_hidden, init_hidden]
-#     total_loss = 0
-#
-#     for (batch, (inp, targ)) in enumerate(dataset_.take(steps_per_epoch)):
-#
-#         batch_loss = train_step(inp, targ, enc_hidden)
-#         total_loss += batch_loss
-#
-#     print('Epoch {} Loss {:.4f}'.format(epoch + 1, total_loss/steps_per_epoch))
-#
-#     if epoch % 200 == 0:
-#         checkpoint.save(file_prefix=checkpoint_prefix)
+checkpoint_dir = './training_checkpoints'
+checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt")
+checkpoint = tf.train.Checkpoint(optimizer=optimizer, encoder=encoder, decoder=decoder)
 
 
 
+for epoch in range(EPOCHS):
+
+    enc_hidden = [init_hidden, init_hidden]
+    total_loss = 0
+
+    for (batch, (inp, targ)) in enumerate(dataset_.take(steps_per_epoch)):
+
+        batch_loss = train_step(inp, targ, enc_hidden)
+        total_loss += batch_loss
+
+    print('Epoch {} Loss {:.4f}'.format(epoch + 1, total_loss/steps_per_epoch))
+
+    if epoch % 200 == 0:
+        checkpoint.save(file_prefix=checkpoint_prefix)
 
 
 
+def get_model(layers=2, units=8):
+
+    input_ = tf.keras.layers.Input(shape=())
+
+    for i in  range(layers):
+        enc
+
+
+    model = tf.keras.Model()
+    return model
+
+
+def get_data(batch_size=32, time_step = 16):
+
+    X, Y = csv_to_dataset(r'Metro_Interstate_Traffic_Volume.csv')
+
+    input = np.array([X[step_count*step: step_count*step+time_step] for step_count in range((X.shape[0]-time_step-1)//step)])
+    targ = np.array([Y[step_count*step+time_step+1] for step_count in range((X.shape[0]-time_step-1)//step)])
+
+    #训练集
+    input_ = input[:int(input.shape[0]*0.8)]
+    targ_ = targ[:int(targ.shape[0]*0.8)]
+
+    #测试集
+    test_input = input[int(input.shape[0]*0.8):]
+    test_targ = targ[int(input.shape[0]*0.8):]
+
+    dataset = tf.data.Dataset.from_tensor_slices((input_, targ_)).shuffle(BUFFER_SIZE)
+
+    dataset_ = dataset.batch(batch_szie, drop_remainder=True)
+
+    return dataset_, test_input, test_targ
