@@ -91,31 +91,9 @@ def get_model(units=8, time_step=32):
 
     input_ = tf.keras.layers.Input(shape=(time_step,10))
     #使用1层lstm作为编码器
-    enc_output, enc_hidden_h, enc_hidden_c = tf.keras.layers.LSTM(units,
-                                                                  return_sequences=True,
-                                                                  return_state=True,
-                                                                  recurrent_initializer='glorot_uniform')(input_)
+    enc_output = tf.keras.layers.GRU(units, recurrent_initializer='glorot_uniform')(input_)
 
-    W1 = tf.keras.layers.Dense(units)
-    W2 = tf.keras.layers.Dense(units)
-    W3 = tf.keras.layers.Dense(units)
-    V = tf.keras.layers.Dense(1)
-
-    hidden_with_time_axis_h = tf.expand_dims(enc_hidden_h, 1)
-    hidden_with_time_axis_c = tf.expand_dims(enc_hidden_c, 1)
-
-    score = V(tf.nn.tanh(W1(enc_output) + W2(hidden_with_time_axis_h) + W3(hidden_with_time_axis_c)))
-    attention_weights = tf.nn.softmax(score, axis=1)
-
-    context_vector = attention_weights * enc_output
-    context_vector = tf.reduce_sum(context_vector, axis=1)
-
-    context_vector_ = tf.expand_dims(context_vector, 1)
-
-    dec_output, dec_hidden_h, dec_hidden_c = tf.keras.layers.LSTM(units,
-                                                                  return_sequences=True,
-                                                                  return_state=True,
-                                                                  recurrent_initializer='glorot_uniform')(context_vector_)
+    dec_output = tf.keras.layers.GRU(units, recurrent_initializer='glorot_uniform')(enc_output)
 
     result = tf.keras.layers.Dense(1)(dec_output)
     result_ = tf.keras.layers.Reshape((1,))(result)
