@@ -12,7 +12,6 @@ def date_split(date):
     hour_, _, _ = time_.split(':')
     return int(year_), int(month_), int(day_), int(hour_)
 
-
 def csv_to_dataset(file_path):
 
     if not os.path.isabs(file_path):
@@ -68,3 +67,8 @@ def csv_to_dataset(file_path):
 
     all_data_ = np.array(list(zip(enc_holiday, nor_temp_, rain_1h, snow_1h,enc_weather,  year_, month_, day_, hour_, nor_label.reshape((-1)))))
     return all_data_, nor_label
+
+# test, label = csv_to_dataset(r'Metro_Interstate_Traffic_Volume.csv')
+#
+# print(test)
+
