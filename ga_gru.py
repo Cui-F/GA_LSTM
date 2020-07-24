@@ -88,17 +88,16 @@ def get_model(units=8, time_step=32):
     :param time_step:
     :return:
     """
+    input = tf.keras.layers.Input(shape=(time_step,10))
 
-    input_ = tf.keras.layers.Input(shape=(time_step,10))
-    #使用1层lstm作为编码器
-    enc_output = tf.keras.layers.GRU(units, recurrent_initializer='glorot_uniform')(input_)
+    enc_output, _ = tf.keras.layers.GRU(units,  return_sequences=True, recurrent_initializer='glorot_uniform')(input)
 
     dec_output = tf.keras.layers.GRU(units, recurrent_initializer='glorot_uniform')(enc_output)
 
     result = tf.keras.layers.Dense(1)(dec_output)
     result_ = tf.keras.layers.Reshape((1,))(result)
 
-    model = tf.keras.Model(input_, result_)
+    model = tf.keras.Model(input, result_)
 
     model.compile(optimizer='adam',
                   loss='mse',
