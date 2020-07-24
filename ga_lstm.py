@@ -74,9 +74,7 @@ def mutation(offspring_crossover, num_mutations=1):
         for mutation_num in range(num_mutations):
             # The random value to be added to the gene.
             random_value = np.random.uniform(-1.0, 1.0, 1)*mutation_range[gene_idx]
-            random_value = np.clip(random_value, mutation_min[gene_idx], mutation_max[gene_idx])
-            offspring_crossover[idx, gene_idx] = offspring_crossover[idx, gene_idx] + random_value
-
+            offspring_crossover[idx, gene_idx] = np.clip(offspring_crossover[idx, gene_idx] + random_value, mutation_min[gene_idx], mutation_max[gene_idx])
             gene_idx = gene_idx + mutations_counter
     return offspring_crossover
 
