@@ -88,16 +88,22 @@ def get_model(units=8, time_step=32):
     :param time_step:
     :return:
     """
-    input = tf.keras.layers.Input(shape=(time_step,10))
+    input_ = tf.keras.layers.Input(shape=(time_step,10))
 
-    enc_output, _ = tf.keras.layers.GRU(units,  return_sequences=True, recurrent_initializer='glorot_uniform')(input)
+    input_re = tf.keras.layers.Reshape(target_shape=(time_step,10,1))(input_)
+
+    conv = tf.keras.layers.Conv2D(1, 2, padding='same')(input_re)
+
+    conv_ = tf.keras.layers.Reshape(target_shape=(time_step,10))(conv)
+
+    enc_output = tf.keras.layers.GRU(units,return_sequences=True, recurrent_initializer='glorot_uniform')(conv_)
 
     dec_output = tf.keras.layers.GRU(units, recurrent_initializer='glorot_uniform')(enc_output)
 
     result = tf.keras.layers.Dense(1)(dec_output)
     result_ = tf.keras.layers.Reshape((1,))(result)
 
-    model = tf.keras.Model(input, result_)
+    model = tf.keras.Model(input_, result_)
 
     model.compile(optimizer='adam',
                   loss='mse',
